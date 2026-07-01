@@ -1,13 +1,13 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react'
-import CommonTopNab from '../../Shared/CommonTopNav/CommonTopNab'
-import useUser from '../../Shared/getUser/GetUser';
+import CommonTopNab from '../../shared/CommonTopNav/CommonTopNab'
+import useUser from '../../shared/getUser/GetUser';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { FaSpinner } from 'react-icons/fa';
-import useLoader from '../../Shared/Loader/Loader';
-import FinalLoader from '../../Shared/Loader/FinalLoader';
+import useLoader from '../../shared/Loader/Loader';
+import FinalLoader from '../../shared/Loader/FinalLoader';
 
 export default function MyProfile() {
     const [user, setUser] = useState(null);

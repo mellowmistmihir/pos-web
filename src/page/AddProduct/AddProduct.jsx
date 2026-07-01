@@ -1,9 +1,9 @@
-import CommonTopNab from "../../Shared/CommonTopNav/CommonTopNab";
+import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import useLoader from "../../Shared/Loader/Loader";
-import FinalLoader from "../../Shared/Loader/FinalLoader";
+import useLoader from "../../shared/Loader/Loader";
+import FinalLoader from "../../shared/Loader/FinalLoader";
 
 
 const AddProduct = () => {
