@@ -10,7 +10,7 @@ import {
   FiX,
 } from "react-icons/fi";
 
-import useGetData from "../../hook/UseGetData";
+import useGetData from "../../hook/useGetData";
 import FinalLoader from "../../shared/Loader/FinalLoader";
 import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 

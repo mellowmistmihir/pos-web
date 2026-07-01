@@ -19,7 +19,7 @@ import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 
 
 import FinalLoader from "../../shared/Loader/FinalLoader";
-import useGetData from "../../hook/UseGetData";
+import useGetData from "../../hook/useGetData";
 
 export default function PeopleList() {
   // =========================
