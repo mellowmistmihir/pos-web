@@ -1,7 +1,7 @@
 import 'react'
 import { useEffect, useRef, useState } from 'react';
 import useUser from '../getUser/GetUser';
-import { NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 
 import {
@@ -553,9 +553,9 @@ const toggleTheme = () => {
                             <HiOutlineUserCircle />
                           </div>
 
-                          <span className="font-medium">
+                       <Link to={"/myprofile"}>   <span className="font-medium">
                             My Profile
-                          </span>
+                          </span></Link>
 
                         </div>
 

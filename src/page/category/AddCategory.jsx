@@ -1,314 +1,485 @@
 import { useState } from "react";
-import CommonTopNab from "../../Shared/CommonTopNav/CommonTopNab";
+import axios from "axios";
 import toast from "react-hot-toast";
 
-import axios from "axios";
-import { FaCaretRight, FaEdit } from "react-icons/fa";
-import { AiTwotoneDelete } from "react-icons/ai";
-import useLoader from "../../Shared/Loader/Loader";
-import FinalLoader from "../../Shared/Loader/FinalLoader";
+import {
+  FiCheck,
+  FiEdit,
+  FiMoreVertical,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
+
 import useGetData from "../../hook/UseGetData";
+import FinalLoader from "../../Shared/Loader/FinalLoader";
+import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 
-export default function AddVehicles() {
-  const [vehicleName, setVehicleName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState(null);
-  const [editLoading, setEditLoading] = useState(false);
+const BASE_URL = "http://localhost:3000";
 
-  const { loading2, online } = useLoader();
+export default function AddCategory() {
+  const [categoryName, setCategoryName] =
+    useState("");
 
-  const { data: vehiclesData, isLoading: tableLoading, refetch } = useGetData(
-    "https://pos-backend-delta.vercel.app/api/vehicles/getVehicles"
-  );
+  const [loading, setLoading] =
+    useState(false);
 
-  const { data: productsData } = useGetData(
-    "https://pos-backend-delta.vercel.app/api/products/getProduct"
-  );
+  // EDIT STATE
+  const [editId, setEditId] = useState(null);
 
-  const enrichedVehicles = vehiclesData?.vehicles?.map((vehicle) => {
-    const productsInVehicle = productsData?.products?.filter(
-      (product) => product.p_vehicle === vehicle.vehicle_name
+  const [editName, setEditName] =
+    useState("");
+
+  // ACTION MENU
+  const [openActionId, setOpenActionId] =
+    useState(null);
+
+  // GET DATA
+  const { data, isLoading, refetch } =
+    useGetData(
+      `${BASE_URL}/api/vehicle-category/get-categories`
     );
 
-    const brandsInVehicle = [
-      ...new Set(productsInVehicle?.map((product) => product.p_brand)),
-    ];
-
-    return {
-      ...vehicle,
-      productCount: productsInVehicle?.length || 0,
-      brandCount: brandsInVehicle?.length || 0,
-    };
-  });
-
-  // Add Vehicle
-  const handleAddVehicle = async (e) => {
+  // ADD CATEGORY
+  const handleAddCategory = async (e) => {
     e.preventDefault();
+
+    if (!categoryName.trim()) {
+      return toast.error(
+        "Category name is required"
+      );
+    }
+
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://pos-backend-delta.vercel.app/api/vehicles/create-vehicle",
+      const res = await axios.post(
+        `${BASE_URL}/api/vehicle-category/create-category`,
         {
-          vehicle_name: vehicleName,
+          category_name: categoryName,
         }
       );
 
-      if (response.status === 201) {
-        toast.success("Vehicle added successfully!");
-        setVehicleName("");
+      if (res.status === 201) {
+        toast.success("Category Added");
+
+        setCategoryName("");
+
         refetch();
-      } else {
-        toast.error("Failed to add vehicle.");
       }
-    } catch {
-      toast.error("Vehicle already exists!");
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to add category"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Get Single Vehicle
-  const handleEditVehicle = async (id) => {
-    try {
-      const response = await axios.get(
-        `https://pos-backend-delta.vercel.app/api/vehicles/single/${id}`
+  // UPDATE CATEGORY
+  const handleUpdateCategory = async (
+    id
+  ) => {
+    if (!editName.trim()) {
+      return toast.error(
+        "Category name is required"
       );
-
-      if (response.status === 200) {
-        setEditingVehicle(response.data);
-        setVehicleName(response.data.vehicle_name);
-
-        document.getElementById("my_modal_2").showModal();
-      } else {
-        toast.error("Failed to fetch vehicle.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching vehicle.");
     }
-  };
 
-  // Update Vehicle
-  const handleUpdateVehicle = async (e) => {
-    e.preventDefault();
-    setEditLoading(true);
+    setLoading(true);
 
     try {
-      const response = await axios.put(
-        `https://pos-backend-delta.vercel.app/api/vehicles/update/${editingVehicle._id}`,
+      const res = await axios.put(
+        `${BASE_URL}/api/vehicle-category/update/${id}`,
         {
-          vehicle_name: vehicleName,
+          category_name: editName,
         }
       );
 
-      if (response.status === 200) {
-        toast.success("Vehicle updated successfully!");
+      if (res.status === 200) {
+        toast.success("Category Updated");
 
-        setEditingVehicle(null);
+        setEditId(null);
+        setEditName("");
 
         refetch();
-
-        document.getElementById("my_modal_2").close();
-      } else {
-        toast.error("Failed to update vehicle.");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Error updating vehicle.");
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to update category"
+      );
     } finally {
-      setEditLoading(false);
+      setLoading(false);
     }
   };
 
-  // Delete Vehicle
-  const handleDeleteVehicle = async (id) => {
-    if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      try {
-        const response = await axios.delete(
-          `https://pos-backend-delta.vercel.app/api/vehicles/delete/${id}`
-        );
+  // DELETE CATEGORY
+  const handleDeleteCategory = async (
+    id
+  ) => {
+    const confirmDelete = window.confirm(
+      "Delete this category?"
+    );
 
-        if (response.status === 200) {
-          toast.success("Vehicle deleted successfully!");
-          refetch();
-        } else {
-          toast.error("Failed to delete vehicle.");
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Error deleting vehicle.");
+    if (!confirmDelete) return;
+
+    setLoading(true);
+
+    try {
+      const res = await axios.delete(
+        `${BASE_URL}/api/vehicle-category/delete/${id}`
+      );
+
+      if (res.status === 200) {
+        toast.success("Category Deleted");
+
+        refetch();
       }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to delete category"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (tableLoading) {
-    return <FinalLoader />;
-  }
-
-  if (loading2 || !online) {
+  if (isLoading || loading) {
     return <FinalLoader />;
   }
 
   return (
     <div>
-      <CommonTopNab />
+      <CommonTopNab></CommonTopNab>
 
-      <div className="p-5">
-        <div className="w-full border border-blue-500 rounded-2xl p-5">
-          <h2 className="text-2xl font-bold mb-5">Add Vehicle</h2>
+      <div className="min-h-screen p-6 bg-transparent">
+        <div className="max-w-7xl mx-auto">
+          {/* ADD CATEGORY */}
+          <div className="rounded-[35px] border border-slate-700 bg-slate-900/60 backdrop-blur-2xl overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+            {/* HEADER */}
+            <div className="relative overflow-hidden border-b border-slate-800">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 opacity-90"></div>
 
-          <form
-            onSubmit={handleAddVehicle}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex flex-col">
-              <label htmlFor="vehicle_name" className="font-medium mb-2">
-                Vehicle Name:
-              </label>
+              <div className="absolute -top-16 right-0 w-72 h-72 bg-cyan-300/20 rounded-full blur-3xl"></div>
 
-              <input
-                id="vehicle_name"
-                type="text"
-                value={vehicleName}
-                onChange={(e) => setVehicleName(e.target.value)}
-                placeholder="Enter vehicle name"
-                className="input border border-gray-300 p-2 rounded-md w-full"
-                required
-              />
+              <div className="absolute bottom-0 left-0 w-52 h-52 bg-indigo-400/20 rounded-full blur-3xl"></div>
+
+              <div className="relative z-10 p-8">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                  <div>
+                    <h2 className="text-4xl font-black text-white">
+                      Vehicle Categories
+                    </h2>
+
+                    <p className="text-slate-200 mt-2">
+                      Premium category
+                      management panel
+                    </p>
+                  </div>
+
+                  {/* TOTAL */}
+                  <div className="bg-white/10 border border-white/10 backdrop-blur-xl px-6 py-4 rounded-3xl">
+                    <p className="text-slate-300 text-sm uppercase tracking-widest">
+                      Total
+                    </p>
+
+                    <h2 className="text-4xl font-black text-white">
+                      {data?.categories?.length ||
+                        0}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* FORM */}
+                <form
+                  onSubmit={
+                    handleAddCategory
+                  }
+                  className="mt-8 flex flex-col lg:flex-row gap-4"
+                >
+                  <input
+                    type="text"
+                    placeholder="Enter category name..."
+                    value={categoryName}
+                    onChange={(e) =>
+                      setCategoryName(
+                        e.target.value
+                      )
+                    }
+                    className="flex-1 bg-slate-800/80 border border-slate-700 text-white placeholder:text-slate-400 px-6 py-5 rounded-2xl outline-none focus:border-blue-500 transition-all duration-300"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 text-white font-bold px-10 py-5 rounded-2xl shadow-2xl"
+                  >
+                    {loading
+                      ? "Adding..."
+                      : "Add Category"}
+                  </button>
+                </form>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-400 transition"
-              disabled={loading}
-            >
-              {loading ? "Adding..." : "Add Vehicle"}
-            </button>
-          </form>
-        </div>
+            {/* TABLE */}
+            <div className="p-6 overflow-x-auto">
+              <table className="w-full border-separate border-spacing-y-5">
+                <thead>
+                  <tr>
+                    <th className="text-left text-slate-400 px-4">
+                      #
+                    </th>
+
+                    <th className="text-left text-slate-400 px-4">
+                      Category
+                    </th>
+
+                    <th className="text-center text-slate-400 px-4">
+                      Products
+                    </th>
+
+                    <th className="text-center text-slate-400 px-4">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {data?.categories
+                    ?.length > 0 ? (
+                    data?.categories?.map(
+                      (
+                        category,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            category._id
+                          }
+                        >
+                          <td
+                            colSpan="4"
+                            className="p-0"
+                          >
+                            <div className="grid grid-cols-12 items-center bg-slate-900 border border-slate-800 rounded-[30px] hover:border-blue-500/40 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_15px_50px_rgba(59,130,246,0.15)]">
+                              {/* NUMBER */}
+                              <div className="col-span-1 px-5 py-6">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 text-white flex items-center justify-center font-black text-lg shadow-lg">
+                                  {index +
+                                    1}
+                                </div>
+                              </div>
+
+                              {/* CATEGORY */}
+                              <div className="col-span-5">
+                                {editId ===
+                                category._id ? (
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="text"
+                                      value={
+                                        editName
+                                      }
+                                      onChange={(
+                                        e
+                                      ) =>
+                                        setEditName(
+                                          e
+                                            .target
+                                            .value
+                                        )
+                                      }
+                                      className="w-full bg-slate-800 border border-slate-700 text-white px-5 py-4 rounded-2xl outline-none focus:border-blue-500"
+                                    />
+
+                                    {/* SAVE */}
+                                    <button
+                                      onClick={() =>
+                                        handleUpdateCategory(
+                                          category._id
+                                        )
+                                      }
+                                      className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl transition-all duration-300 hover:scale-110"
+                                    >
+                                      <FiCheck
+                                        size={
+                                          20
+                                        }
+                                      />
+                                    </button>
+
+                                    {/* CANCEL */}
+                                    <button
+                                      onClick={() => {
+                                        setEditId(
+                                          null
+                                        );
+
+                                        setEditName(
+                                          ""
+                                        );
+                                      }}
+                                      className="bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl transition-all duration-300 hover:scale-110"
+                                    >
+                                      <FiX
+                                        size={
+                                          20
+                                        }
+                                      />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <h2 className="text-2xl font-bold text-white">
+                                      {
+                                        category.category_name
+                                      }
+                                    </h2>
+
+                                    <p className="text-slate-400 text-sm mt-1">
+                                      Vehicle
+                                      category
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* PRODUCT COUNT */}
+                              <div className="col-span-3 flex justify-center">
+                                <div className="bg-gradient-to-r from-indigo-500 to-blue-500 px-8 py-4 rounded-3xl shadow-xl">
+                                  <p className="text-xs uppercase tracking-widest text-white/70">
+                                    Products
+                                  </p>
+
+                                  <h2 className="text-3xl font-black text-white">
+                                    {category.productCount ||
+                                      0}
+                                  </h2>
+                                </div>
+                              </div>
+
+                              {/* ACTIONS */}
+                              {/* ACTIONS */}
+<div className="col-span-3 flex justify-center relative">
+  {/* ACTION BUTTON */}
+  <button
+    onClick={() =>
+      setOpenActionId(
+        openActionId === category._id
+          ? null
+          : category._id
+      )
+    }
+    className={`group relative w-14 h-14 rounded-2xl border transition-all duration-300 flex items-center justify-center shadow-lg
+    ${
+      openActionId === category._id
+        ? "bg-gradient-to-r from-blue-500 to-indigo-500 border-blue-400 rotate-90"
+        : "bg-slate-800 border-slate-700 hover:border-blue-500 hover:bg-slate-700"
+    }`}
+  >
+    {/* GLOW */}
+    <div className="absolute inset-0 rounded-2xl bg-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+    <FiMoreVertical
+      size={22}
+      className="relative z-10 text-white"
+    />
+  </button>
+
+  
+ {/* DROPDOWN */}
+{openActionId === category._id && (
+  <div className="absolute top-0 right-full mr-4 w-56 rounded-2xl overflow-hidden border border-slate-700 bg-[#111827]/95 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] z-[9999] animate-in fade-in zoom-in duration-200">
+    
+    {/* TOP LIGHT */}
+    <div className="h-[3px] w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400"></div>
+
+    {/* EDIT */}
+    <button
+      onClick={() => {
+        setEditId(category._id);
+
+        setEditName(
+          category.category_name
+        );
+
+        setOpenActionId(null);
+      }}
+      className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-blue-500/10 transition-all duration-300 group"
+    >
+      <div className="w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+        <FiEdit
+          size={18}
+          className="text-blue-400"
+        />
       </div>
 
-      <div className="p-5">
-        <div className="w-full min-h-screen border border-blue-500 rounded-2xl p-5">
-          <h2 className="text-2xl font-bold mb-5">
-            Vehicle Table
-          </h2>
+      <div>
+        <h3 className="text-white font-semibold">
+          Edit
+        </h3>
 
-          <table className="table-auto w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-blue-500 text-white">
-                <th className="border border-gray-300 px-4 py-2">
-                  Vehicle Name
-                </th>
+        <p className="text-slate-400 text-xs">
+          Update category
+        </p>
+      </div>
+    </button>
 
-                <th className="border border-gray-300 px-4 py-2">
-                  Products Count
-                </th>
+    {/* DIVIDER */}
+    <div className="w-full h-[1px] bg-slate-700"></div>
 
-                <th className="border border-gray-300 px-4 py-2">
-                  Brands Count
-                </th>
+    {/* DELETE */}
+    <button
+      onClick={() =>
+        handleDeleteCategory(
+          category._id
+        )
+      }
+      className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-red-500/10 transition-all duration-300 group"
+    >
+      <div className="w-11 h-11 rounded-xl bg-red-500/15 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+        <FiTrash2
+          size={18}
+          className="text-red-400"
+        />
+      </div>
 
-                <th className="border border-gray-300 px-4 py-2">
-                  Action
-                </th>
-              </tr>
-            </thead>
+      <div>
+        <h3 className="text-red-400 font-semibold">
+          Delete
+        </h3>
 
-            <tbody>
-              {enrichedVehicles?.map((vehicle) => (
-                <tr key={vehicle._id}>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {vehicle.vehicle_name}
-                  </td>
-
-                  <td className="border border-gray-300 px-4 py-2">
-                    {vehicle.productCount}
-                  </td>
-
-                  <td className="border border-gray-300 px-4 py-2">
-                    {vehicle.brandCount}
-                  </td>
-
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <div className="dropdown dropdown-left flex justify-center">
-                      <div>
-                        <button className="btn m-1 text-blue-500">
-                          Action
-                        </button>
-                      </div>
-
-                      <ul
-                        tabIndex={0}
-                        className="dropdown-content items-center border border-blue-500 menu bg-white rounded-md z-[1] w-52 shadow"
+        <p className="text-slate-400 text-xs">
+          Remove category
+        </p>
+      </div>
+    </button>
+  </div>
+)}
+</div>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    )
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="text-center py-20 text-slate-500"
                       >
-                        <FaCaretRight className="absolute text-3xl ml-[218px] text-blue-600" />
-
-                        <li
-                          className="w-full border-b text-blue-500"
-                          onClick={() =>
-                            handleEditVehicle(vehicle._id)
-                          }
-                        >
-                          <a>
-                            <FaEdit className="text-2xl" />
-                            Edit
-                          </a>
-                        </li>
-
-                        <li
-                          className="w-full border-b text-red-500"
-                          onClick={() =>
-                            handleDeleteVehicle(vehicle._id)
-                          }
-                        >
-                          <a>
-                            <AiTwotoneDelete className="text-2xl" />
-                            Delete
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Modal */}
-        <dialog id="my_modal_2" className="modal">
-          <div className="modal-box bg-white">
-            <form onSubmit={handleUpdateVehicle}>
-              <div className="flex flex-col">
-                <label className="text-sm">
-                  Edit Vehicle
-                </label>
-
-                <input
-                  name="vehicleName"
-                  value={vehicleName}
-                  onChange={(e) => setVehicleName(e.target.value)}
-                  required
-                  className="border h-10 w-[220px] border-blue-100 pl-3 rounded-lg outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="border px-2 py-2 mt-2 rounded-lg mb-2 bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300"
-                disabled={editLoading}
-              >
-                {editLoading ? "Updating..." : "Update Vehicle"}
-              </button>
-            </form>
+                        No Categories Found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-
-          <form method="dialog" className="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
+        </div>
       </div>
     </div>
   );
