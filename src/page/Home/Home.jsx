@@ -7,7 +7,7 @@ import {
   FiShoppingBag,
   FiTrendingUp,
 } from "react-icons/fi";
-import CommonTopNab from "../../Shared/CommonTopNav/CommonTopNab";
+import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 
 export default function Home() {
     

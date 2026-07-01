@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 
 import useGetData from "../../hook/UseGetData";
-import FinalLoader from "../../Shared/Loader/FinalLoader";
+import FinalLoader from "../../shared/Loader/FinalLoader";
 import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 
 const BASE_URL = "http://localhost:3000";

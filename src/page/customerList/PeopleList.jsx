@@ -14,11 +14,11 @@ import {
   FiStar,
 } from "react-icons/fi";
 
-import CommonTopNab from "../../Shared/CommonTopNav/CommonTopNab";
+import CommonTopNab from "../../shared/CommonTopNav/CommonTopNab";
 
 
 
-import FinalLoader from "../../Shared/Loader/FinalLoader";
+import FinalLoader from "../../shared/Loader/FinalLoader";
 import useGetData from "../../hook/UseGetData";
 
 export default function PeopleList() {

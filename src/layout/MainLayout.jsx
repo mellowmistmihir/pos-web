@@ -1,9 +1,9 @@
 import { Outlet } from "react-router";
 import { useEffect, useState } from "react";
 
-import Navbar from "../Shared/Navbar/Navbar";
+import Navbar from "../shared/Navbar/Navbar";
 import Login from "../page/Authentication/Login";
-import useUser from "../Shared/getUser/GetUser";
+import useUser from "../shared/getUser/GetUser";
 
 const MainLayout = () => {
 
